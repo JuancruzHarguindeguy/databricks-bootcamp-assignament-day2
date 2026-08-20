@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Intelligence RAG Service</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 5L25 15H30L35 25H32L28 35H12L8 25H5L10 15H15L20 5Z" fill="#4F46E5"/>
+                    <circle cx="20" cy="20" r="3" fill="#FFF"/>
+                </svg>
+                <h1>Weather Intelligence RAG</h1>
+            </div>
+            <div class="health-status" id="healthStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Data Sync Section -->
+            <section class="card sync-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
+                    </svg>
+                    Sync Weather Data
+                </h2>
+                <p class="section-description">Fetch weather alerts and forecasts from NWS API</p>
+                
+                <form id="syncForm">
+                    <div class="form-group">
+                        <label for="locations">Locations (comma-separated)</label>
+                        <input 
+                            type="text" 
+                            id="locations" 
+                            name="locations" 
+                            placeholder="41.88,-87.63, IL, 30.27,-97.74"
+                            value="41.88,-87.63, IL"
+                            required
+                        >
+                        <small>Format: "lat,lon" for coordinates or "XX" for state codes</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="limit">Limit per location</label>
+                        <input 
+                            type="number" 
+                            id="limit" 
+                            name="limit" 
+                            min="1" 
+                            max="50" 
+                            value="10"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="syncBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
+                        </svg>
+                        Sync Data
+                    </button>
+                </form>
+                
+                <div id="syncResult" class="result-message"></div>
+            </section>
+
+            <!-- Semantic Search Section -->
+            <section class="card search-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    Semantic Search
+                </h2>
+                <p class="section-description">Search weather data using natural language</p>
+                
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="query">Search Query</label>
+                        <input 
+                            type="text" 
+                            id="query" 
+                            name="query" 
+                            placeholder="flash flood risk this weekend"
+                            required
+                        >
+                        <small>Example: "severe thunderstorm with damaging winds"</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="topK">Number of results</label>
+                        <input 
+                            type="number" 
+                            id="topK" 
+                            name="topK" 
+                            min="1" 
+                            max="20" 
+                            value="5"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="searchBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                        </svg>
+                        Search
+                    </button>
+                </form>
+                
+                <div id="searchResults" class="search-results"></div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>
+                <strong>Weather Intelligence RAG Service</strong> | 
+                Powered by <a href="https://www.weather.gov/documentation/services-web-api" target="_blank">NWS API</a> & 
+                <a href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2" target="_blank">sentence-transformers</a>
+            </p>
+            <p class="tech-stack">
+                PostgreSQL + pgvector | Flask | 384-dim embeddings | Cosine similarity search
+            </p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

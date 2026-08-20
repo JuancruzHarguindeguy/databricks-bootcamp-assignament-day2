@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather Intelligence RAG Service</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card-bg: #ffffff;
+      --border: #e4e7ee;
+      --text: #1f2430;
+      --muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      max-width: 1400px;
+      margin: 48px auto;
+      padding: 0 20px;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+    }
+    label:first-child { margin-top: 0; }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.15s ease;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    button {
+      margin-top: 18px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:active { transform: translateY(1px); }
+
+    .result {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      background: #f6f6f6;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 32px;
+      margin-bottom: 8px;
+    }
+
+    .result-item {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+      background: #fafbfe;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+    .result-item:last-child { margin-bottom: 0; }
+    .result-item:hover { 
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .result-title {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .result-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .result-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 6px;
+      border: 1px solid #f0f0f0;
+      margin-top: 12px;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #dbeafe;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-left: 8px;
+    }
+
+    .results-container {
+      max-height: none;
+      overflow-y: visible;
+    }
+
+    .search-results {
+      margin-top: 24px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+    }
+
+    .result-headline {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 8px 0;
+      line-height: 1.4;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-alert {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .badge-forecast {
+      background: #eff6ff;
+      color: #1e40af;
+    }
+
+    .similarity-score {
+      text-align: right;
+      min-width: 80px;
+    }
+
+    .similarity-score > span {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .score-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, #60a5fa 100%);
+      transition: width 0.3s ease;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+
+    .no-results svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .no-results p {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 8px 0;
+    }
+
+    .no-results small {
+      font-size: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    /* Override styles - keep minimal overrides here */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <h1>☁️ Weather Intelligence RAG</h1>
+      </div>
+      <div class="health-status" id="healthStatus">
+        <div class="status-dot"></div>
+        <span class="status-text">Checking...</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Weather Data Sync -->
+      <div class="card">
+        <h2>📡 Sync Weather Data</h2>
+        <p class="section-description">Fetch weather alerts and forecasts from the National Weather Service API.</p>
+        
+        <form id="syncForm">
+          <div class="form-group">
+            <label for="locations">Locations</label>
+            <input type="text" id="locations" placeholder="41.88,-87.63, IL, CA" required>
+            <small>Comma-separated coordinates (lat,lon) or state codes</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="limit">Items per location</label>
+            <input type="number" id="limit" value="10" min="1" max="50">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="syncBtn">Sync Weather Data</button>
+        </form>
+        
+        <div id="syncResult" class="result-message"></div>
+      </div>
+
+      <!-- Vector Search -->
+      <div class="card">
+        <h2>🔍 Vector Search</h2>
+        <p class="section-description">Search weather documents using semantic similarity.</p>
+        
+        <form id="searchForm">
+          <div class="form-group">
+            <label for="query">Search query</label>
+            <input type="text" id="query" placeholder="What's the flood risk this weekend?" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="topK">Number of results</label>
+            <input type="number" id="topK" value="5" min="1" max="20">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="searchBtn">Search</button>
+        </form>
+        
+        <div id="searchResults" class="search-results"></div>
+      </div>
+    </main>
+
+    <footer>
+      <p><strong>Weather Intelligence RAG Service</strong></p>
+      <p>Powered by Databricks Lakebase, pgvector, and National Weather Service API</p>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script>
+    // Override: Database stats display removed for simplicity
+    // If you want stats, add a card and fetch from /weather/stats endpoint
+
+  </script>
+</body>
+</html>
